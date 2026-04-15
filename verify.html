@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Verificando tu correo — Arya</title>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #F7F4FF; color: #222; margin: 0; padding: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+  .card { background: white; max-width: 420px; width: 90%; padding: 40px 32px; border-radius: 16px; box-shadow: 0 8px 24px rgba(108, 76, 241, 0.1); text-align: center; }
+  h1 { color: #6C4CF1; margin: 0 0 8px; }
+  p { color: #555; line-height: 1.6; }
+  .spinner { width: 40px; height: 40px; border: 4px solid #E6DEFF; border-top-color: #6C4CF1; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 24px auto; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .ok { color: #2d9c5a; }
+  .err { color: #c13030; }
+  .cta { display: inline-block; background: #6C4CF1; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; margin-top: 16px; }
+</style>
+</head>
+<body>
+  <div class="card" id="card">
+    <h1>Arya 🐾</h1>
+    <div class="spinner"></div>
+    <p id="msg">Verificando tu correo...</p>
+  </div>
+
+<script>
+(async () => {
+  const API = 'https://camino-a-casa-api-production.up.railway.app';
+  const params = new URLSearchParams(window.location.search);
+  const token = params.get('token');
+  const email = params.get('email');
+  const card = document.getElementById('card');
+  const msg = document.getElementById('msg');
+
+  if (!token || !email) {
+    card.innerHTML = '<h1>Arya 🐾</h1><p class="err">Enlace inválido.</p>';
+    return;
+  }
+
+  try {
+    const r = await fetch(API + '/api/email/verify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token, email }),
+    });
+    const data = await r.json();
+    if (r.ok) {
+      card.innerHTML = '<h1 class="ok">¡Listo! ✅</h1><p>Tu correo fue verificado. Ya puedes iniciar sesión en Arya.</p><a class="cta" href="arya://login">Abrir Arya</a>';
+    } else {
+      card.innerHTML = '<h1 class="err">Error</h1><p>' + (data.error || 'No se pudo verificar') + '</p>';
+    }
+  } catch (e) {
+    card.innerHTML = '<h1 class="err">Error</h1><p>No se pudo conectar. Intenta más tarde.</p>';
+  }
+})();
+</script>
+</body>
+</html>
